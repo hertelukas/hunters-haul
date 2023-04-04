@@ -1,0 +1,50 @@
+[gd_scene load_steps=4 format=3 uid="uid://bvwl67cmbfgjp"]
+
+[ext_resource type="Script" path="res://Scripts/GUI.cs" id="1_p1750"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_56neq"]
+properties/0/path = NodePath("GridContainer/Time:text")
+properties/0/spawn = true
+properties/0/sync = true
+
+[sub_resource type="Theme" id="Theme_raj5u"]
+
+[node name="GUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_p1750")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_56neq")
+
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -109.5
+offset_right = 109.5
+offset_bottom = 42.0
+grow_horizontal = 2
+
+[node name="Time" type="Label" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme = SubResource("Theme_raj5u")
+theme_type_variation = &"HeaderLarge"
+text = "Remaining Time"
+
+[node name="LeaveGameButton" type="Button" parent="GridContainer"]
+layout_mode = 2
+text = "Leave Game"
+
+[node name="NextRoundButton" type="Button" parent="GridContainer"]
+layout_mode = 2
+text = "Next Round"
+
+[connection signal="pressed" from="GridContainer/LeaveGameButton" to="." method="OnExitGamePressed"]
+[connection signal="pressed" from="GridContainer/NextRoundButton" to="." method="OnNextRoundPressed"]
