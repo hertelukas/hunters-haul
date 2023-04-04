@@ -5,7 +5,7 @@ namespace HuntersHaul.Scripts;
 
 public partial class Lobby : Control
 {
-	private HuntersHaul.Scripts.GameState _gameState;
+	private GameState _gameState;
 	private Control _connectControl;
 	private Control _playersControl;
 	private LineEdit _nameLineEdit;

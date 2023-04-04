@@ -7,7 +7,7 @@ namespace HuntersHaul.Scripts;
 public partial class GUI : Control
 {
 	private Label _time;
-	private HuntersHaul.Scripts.GameState _gameState;
+	private GameState _gameState;
 	private Button _leaveGameButton;
 	private Button _nextRoundButton;
 	private bool _showingUi;

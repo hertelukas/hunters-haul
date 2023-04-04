@@ -10,7 +10,7 @@ public partial class Player : CharacterBody2D
 	[Export] public Vector2 SyncedPosition;
 
 	private PlayerControls _inputs;
-	private HuntersHaul.Scripts.GameState _gameState;
+	private GameState _gameState;
 	[Export] public bool IsHunter;
 	public string PlayerName;
 
