@@ -186,7 +186,7 @@ public partial class Lobby : Control
 			{
 				if (!dir.CurrentIsDir())
 				{
-					if (fileName.EndsWith(".tscn"))
+					if (fileName.EndsWith(".tscn") || fileName.EndsWith(".tscn.remap"))
 					{
 						result.Add(fileName.Remove(fileName.IndexOf(".tscn", StringComparison.Ordinal)));
 						
