@@ -22,7 +22,6 @@ grow_vertical = 2
 script = ExtResource("1_8o37j")
 
 [node name="Connect" type="Panel" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -83,6 +82,7 @@ text = "Ragequit"
 layout_mode = 2
 
 [node name="Players" type="Panel" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
