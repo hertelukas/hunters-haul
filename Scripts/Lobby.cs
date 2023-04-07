@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -17,6 +19,11 @@ public partial class Lobby : Control
 	private ItemList _playerList;
 	private Button _startButton;
 	private SpinBox _searchTimeBox;
+	private Button _cycleLeftButton;
+	private Button _cycleRightButton;
+	private Label _currentMapLabel;
+	private List<string> _scenes;
+	private int _sceneIndex;
 
 	private AcceptDialog _errorDialog;
 	
@@ -43,8 +50,14 @@ public partial class Lobby : Control
 		_playerList = GetNode<ItemList>("Players/PlayerList");
 		_startButton = GetNode<Button>("Players/StartButton");
 		_searchTimeBox = GetNode<SpinBox>("Players/SearchTime");
+		_currentMapLabel = GetNode<Label>("Players/WorldChooserContainer/CurrentMap");
+		_cycleLeftButton = GetNode<Button>("Players/WorldChooserContainer/CycleLeftButton");
+		_cycleRightButton = GetNode<Button>("Players/WorldChooserContainer/CycleRightButton");
 
 		_errorDialog = GetNode<AcceptDialog>("ErrorDialog");
+
+		_scenes = DirContent("res://Worlds");
+		_currentMapLabel.Text = _scenes[0];
 	}
 
 	private void OnHostPressed()
@@ -128,17 +141,66 @@ public partial class Lobby : Control
 		}
 
 		_startButton.Disabled = !Multiplayer.IsServer() || _playerList.ItemCount < 2;
+		_cycleLeftButton.Disabled = !Multiplayer.IsServer();
+		_cycleRightButton.Disabled = !Multiplayer.IsServer();
 	}
 
 	private void OnStartPressed()
 	{
 		// TODO handle invalid spinBox entries
-		_gameState.BeginGame((int)_searchTimeBox.Value);
+		_gameState.BeginGame((int)_searchTimeBox.Value, _scenes[_sceneIndex]);
 	}
 
 	private void OnQuitPressed()
 	{
 		GetTree().Quit();
+	}
+
+	private void OnRightPressed()
+	{
+		_sceneIndex = ++_sceneIndex % _scenes.Count;
+		GD.Print(_sceneIndex);
+		_currentMapLabel.Text = _scenes[_sceneIndex];
+	}
+
+	private void OnLeftPressed()
+	{
+		_sceneIndex = (--_sceneIndex % _scenes.Count);
+		if (_sceneIndex < 0)
+		{
+			_sceneIndex += _scenes.Count;
+		}
+		GD.Print(_sceneIndex);
+		_currentMapLabel.Text = _scenes[_sceneIndex];
+	}
+
+	private List<string> DirContent(string path)
+	{
+		using var dir = DirAccess.Open(path);
+		var result = new List<string>();
+		if (dir != null)
+		{
+			dir.ListDirBegin();
+			string fileName = dir.GetNext();
+			while (fileName != "")
+			{
+				if (!dir.CurrentIsDir())
+				{
+					if (fileName.EndsWith(".tscn"))
+					{
+						result.Add(fileName.Remove(fileName.IndexOf(".tscn", StringComparison.Ordinal)));
+						
+					}
+				}
+				fileName = dir.GetNext();
+			}
+		}
+		else
+		{
+			GD.Print("An error occurred when trying to access the path.");
+		}
+
+		return result;
 	}
 
 }

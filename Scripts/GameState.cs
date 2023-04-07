@@ -24,6 +24,8 @@ public partial class GameState : Node
     private readonly Dictionary<long, TimeSpan> _durations = new();
     private long _curHunterId = 0;
 
+    private string _worldName;
+
     [Signal]
     public delegate void PlayerListChangedEventHandler();
 
@@ -96,10 +98,12 @@ public partial class GameState : Node
     }
 
     [Rpc(CallLocal = true)]
-    void LoadWorld()
+    void LoadWorld(Variant worldName)
     {
-        var world = (PackedScene)GD.Load("res://Worlds/World.tscn");
+        _worldName = worldName.As<string>();
+        var world = (PackedScene)GD.Load("res://Worlds/" + _worldName + ".tscn");
         GetTree().Root.AddChild(world.Instantiate());
+        // TODO check that top node has _worldName
         
         // Hide lobby
         GetTree().Root.GetNode<Lobby>("Lobby").Hide();
@@ -127,11 +131,11 @@ public partial class GameState : Node
         Multiplayer.MultiplayerPeer = _peer;
     }
 
-    public void BeginGame(int searchTime)
+    public void BeginGame(int searchTime, string worldName)
     {
         System.Diagnostics.Debug.Assert(Multiplayer.IsServer());
         
-        Rpc("LoadWorld");
+        Rpc("LoadWorld", Variant.From(worldName));
         Rpc("SetSearchTime", Variant.From(searchTime));
 
         SpawnPlayers();
@@ -141,7 +145,7 @@ public partial class GameState : Node
     {
         System.Diagnostics.Debug.Assert(Multiplayer.IsServer());
         
-        var world = GetTree().Root.GetNode("World");
+        var world = GetTree().Root.GetNode(_worldName);
         
         SetPlayerPositions();
         _start = DateTime.Now;
@@ -151,7 +155,7 @@ public partial class GameState : Node
 
     private void SpawnPlayers()
     {
-        var world = GetTree().Root.GetNode("World");
+        var world = GetTree().Root.GetNode(_worldName);
         var playerScene = (PackedScene)GD.Load("res://Player.tscn");
         var playerParent = world.GetNode<Node2D>("Players");
         
@@ -170,7 +174,7 @@ public partial class GameState : Node
 
     private void SetPlayerPositions()
     {
-        var world = GetTree().Root.GetNode("World");
+        var world = GetTree().Root.GetNode(_worldName);
         
         var playerParent = world.GetNode<Node2D>("Players");
         // Peer id and spawn points
@@ -210,9 +214,9 @@ public partial class GameState : Node
     public void EndGame()
     {
         // Game is running
-        if (HasNode("/root/World"))
+        if (HasNode("/root/" + _worldName))
         {
-            GetNode("/root/World").QueueFree();
+            GetNode("/root/" + _worldName).QueueFree();
         }
 
         EmitSignal(SignalName.GameEnded);
@@ -270,7 +274,7 @@ public partial class GameState : Node
     public override void _Process(double delta)
     {
         // Game not running
-        if (!HasNode("/root/World"))
+        if (!HasNode("/root/" + _worldName))
             return;
         
         if (!Multiplayer.IsServer())

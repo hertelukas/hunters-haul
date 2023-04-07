@@ -8,6 +8,9 @@
 properties/0/path = NodePath("SearchTime:value")
 properties/0/spawn = true
 properties/0/sync = true
+properties/1/path = NodePath("WorldChooserContainer/CurrentMap:text")
+properties/1/spawn = true
+properties/1/sync = true
 
 [node name="Lobby" type="Control"]
 layout_mode = 3
@@ -87,9 +90,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -181.0
-offset_top = -247.5
+offset_top = -244.0
 offset_right = 181.0
-offset_bottom = 247.5
+offset_bottom = 279.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -126,9 +129,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -41.5312
-offset_top = -105.5
+offset_top = -128.0
 offset_right = 41.5312
-offset_bottom = -74.5
+offset_bottom = -97.0
 grow_horizontal = 2
 grow_vertical = 0
 tooltip_text = "Searchtime in seconds"
@@ -139,9 +142,32 @@ value = 10.0
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="Players"]
 replication_config = SubResource("SceneReplicationConfig_okkj5")
 
+[node name="WorldChooserContainer" type="HBoxContainer" parent="Players"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 19.0
+offset_bottom = 56.0
+grow_horizontal = 2
+alignment = 1
+
+[node name="CycleLeftButton" type="Button" parent="Players/WorldChooserContainer"]
+layout_mode = 2
+text = "<"
+
+[node name="CurrentMap" type="Label" parent="Players/WorldChooserContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="CycleRightButton" type="Button" parent="Players/WorldChooserContainer"]
+layout_mode = 2
+text = ">"
+
 [node name="ErrorDialog" type="AcceptDialog" parent="."]
 
 [connection signal="pressed" from="Connect/GridContainer/HostButton" to="." method="OnHostPressed"]
 [connection signal="pressed" from="Connect/GridContainer/JoinButton" to="." method="OnJoinPressed"]
 [connection signal="pressed" from="Connect/GridContainer/QuitButton" to="." method="OnQuitPressed"]
 [connection signal="pressed" from="Players/StartButton" to="." method="OnStartPressed"]
+[connection signal="pressed" from="Players/WorldChooserContainer/CycleLeftButton" to="." method="OnLeftPressed"]
+[connection signal="pressed" from="Players/WorldChooserContainer/CycleRightButton" to="." method="OnRightPressed"]
