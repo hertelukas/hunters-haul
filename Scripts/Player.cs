@@ -5,7 +5,7 @@ namespace HuntersHaul.Scripts;
 public partial class Player : CharacterBody2D
 {
 	private const float Speed = 300.0f;
-	private const float HunterBoost = 1.1f;
+	private const float HunterBoost = 1.2f;
 
 	[Export] public Vector2 SyncedPosition;
 
@@ -52,7 +52,11 @@ public partial class Player : CharacterBody2D
 			Position = Position.Lerp(SyncedPosition, 0.25f);
 		}
 		
-		Velocity = _inputs.Motion * Speed * HunterBoost;
+		Velocity = _inputs.Motion * Speed;
+		if (IsHunter)
+		{
+			Velocity *= HunterBoost;
+		}
 		MoveAndSlide();
 		
 		// Update animation based on last known player input state
