@@ -20,8 +20,8 @@ public partial class GameState : Node
     private ENetMultiplayerPeer _peer;
 
     // Dictionary with player ids, and names
-    private readonly Dictionary<long, string> _players = new();
-    private readonly Dictionary<long, TimeSpan> _durations = new();
+    private readonly System.Collections.Generic.Dictionary<long, string> _players = new();
+    private readonly System.Collections.Generic.Dictionary<long, TimeSpan> _durations = new();
     private long _curHunterId = 0;
 
     private string _worldName;
@@ -237,7 +237,7 @@ public partial class GameState : Node
         return id == 1 ? PlayerName : _players[id];
     }
 
-    public Dictionary<long, TimeSpan> GetDurations()
+    public System.Collections.Generic.Dictionary<long, TimeSpan> GetDurations()
     {
         return _durations;
     }
@@ -283,21 +283,39 @@ public partial class GameState : Node
         Rpc("SyncGameState", Variant.From(GetTime()));
         
         // Spawn powerups
-        // TODO
-        return;
         _lastSpawn += delta;
         if (_lastSpawn > SpawnRate)
         {
+            SpawnPowerUps();
+        }
+    }
+
+    private void SpawnPowerUps()
+    {
             _lastSpawn = 0;
-            var powerUpSpawnPoints = GetTree().Root.GetNode("World").GetNode<Node2D>("PowerUpSpawnPoints");
+            var powerUpSpawnPoints = GetTree().Root.GetNode(_worldName).GetNode<Node2D>("PowerUpSpawnPoints");
             var spawnPointsCount = powerUpSpawnPoints.GetChildCount();
             GD.Randomize();
+            var spawnedPowerUps = GetTree().Root.GetNode(_worldName).GetNode<Node2D>("PowerUps");
             var idx = Math.Abs((int)GD.Randi()) % spawnPointsCount;
-            var spawnPoint = powerUpSpawnPoints.GetChild<Marker2D>(idx).Position; 
-            
-            
-            GetNode<MultiplayerSpawner>("/root/World/PowerUpSpawner").Spawn(Variant.From(spawnPoint));
-        }
+            var alreadyChecked = new List<int> { idx };
+            while (spawnedPowerUps.GetChildren().Any(a => a.Name == idx.ToString()))
+            {
+                if (alreadyChecked.Count == spawnPointsCount)
+                {
+                    GD.Print("All spawn points full!");
+                    return;
+                }
+                idx = Math.Abs((int)GD.Randi()) % spawnPointsCount;
+                alreadyChecked.Add(idx);
+            }
+            var spawnPoint = powerUpSpawnPoints.GetChild<Marker2D>(idx).Position;
+
+            var data = new Godot.Collections.Array();
+            data.Add(spawnPoint);
+            data.Add(idx);
+
+            GetNode<MultiplayerSpawner>($"/root/{_worldName}/PowerUpSpawner").Spawn(data);
     }
 
     [Rpc]

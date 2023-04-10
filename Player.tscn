@@ -1,7 +1,8 @@
-[gd_scene load_steps=13 format=3 uid="uid://cili7f5cxcdpw"]
+[gd_scene load_steps=14 format=3 uid="uid://cili7f5cxcdpw"]
 
 [ext_resource type="Script" path="res://Scripts/Player.cs" id="1_1kvhs"]
 [ext_resource type="Script" path="res://Scripts/PlayerControls.cs" id="2_xeitm"]
+[ext_resource type="Theme" uid="uid://dqnvdsm4rrfcp" path="res://Art/pastel.theme" id="3_2bpx7"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_egy63"]
 load_path = "res://.godot/imported/charwalk.png-1b624718d768ab196cbff46195fc896f.ctex"
@@ -181,9 +182,10 @@ offset_left = -67.0
 offset_top = -53.0
 offset_right = 68.0
 offset_bottom = -19.0
+theme = ExtResource("3_2bpx7")
 theme_type_variation = &"HeaderMedium"
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 5
+theme_override_constants/outline_size = 4
 text = "Hunter"
 horizontal_alignment = 1
 vertical_alignment = 1

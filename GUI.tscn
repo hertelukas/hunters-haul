@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://bvwl67cmbfgjp"]
+[gd_scene load_steps=5 format=3 uid="uid://bvwl67cmbfgjp"]
 
+[ext_resource type="Theme" uid="uid://dqnvdsm4rrfcp" path="res://Art/pastel.theme" id="1_3mj21"]
 [ext_resource type="Script" path="res://Scripts/GUI.cs" id="1_p1750"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_56neq"]
@@ -16,6 +17,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_3mj21")
 script = ExtResource("1_p1750")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
@@ -36,6 +38,8 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme = SubResource("Theme_raj5u")
 theme_type_variation = &"HeaderLarge"
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 text = "Remaining Time"
 
 [node name="LeaveGameButton" type="Button" parent="GridContainer"]
