@@ -1,4 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://dn1raw5tohoye"]
+[gd_scene load_steps=4 format=3 uid="uid://dn1raw5tohoye"]
+
+[ext_resource type="Script" path="res://Scripts/PowerUp.cs" id="1_osqpy"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_srh2j"]
 particle_flag_disable_z = true
@@ -12,8 +14,16 @@ scale_min = 5.0
 scale_max = 5.0
 color = Color(0.803922, 0.854902, 0.992157, 1)
 
-[node name="DummyPowerUp" type="Node2D"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_sr4ya"]
+
+[node name="DummyPowerUp" type="Area2D"]
+script = ExtResource("1_osqpy")
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 amount = 10
 process_material = SubResource("ParticleProcessMaterial_srh2j")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_sr4ya")
+
+[connection signal="body_entered" from="." to="." method="OnBodyEntered"]

@@ -20,8 +20,8 @@ public partial class GameState : Node
     private ENetMultiplayerPeer _peer;
 
     // Dictionary with player ids, and names
-    private readonly System.Collections.Generic.Dictionary<long, string> _players = new();
-    private readonly System.Collections.Generic.Dictionary<long, TimeSpan> _durations = new();
+    private readonly Dictionary<long, string> _players = new();
+    private readonly Dictionary<long, TimeSpan> _durations = new();
     private long _curHunterId = 0;
 
     private string _worldName;
@@ -237,7 +237,7 @@ public partial class GameState : Node
         return id == 1 ? PlayerName : _players[id];
     }
 
-    public System.Collections.Generic.Dictionary<long, TimeSpan> GetDurations()
+    public Dictionary<long, TimeSpan> GetDurations()
     {
         return _durations;
     }

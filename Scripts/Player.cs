@@ -87,11 +87,32 @@ public partial class Player : CharacterBody2D
 		for (var i = 0; i < GetSlideCollisionCount(); i++)
 		{
 			var collision = GetSlideCollision(i);
-			if (collision.GetCollider() is Player && IsHunter)
+
+			switch (collision.GetCollider())
 			{
-				_gameState.StopHunt();
+				case Player:
+					if (IsHunter)
+					{
+						_gameState.StopHunt();
+					}
+					break;
+				case PowerUp:
+					GD.Print($"Collided with ${((PowerUp)collision.GetCollider()).Type}");
+					break;
+				
 			}
 		}
+	}
+
+	
+	/// <summary>
+	/// Pick ups a power-up
+	/// </summary>
+	/// <param name="type">Type of the power-up</param>
+	/// <returns>Whether the player has picked it up</returns>
+	public bool PickUpPowerUp(PowerUp.PowerUpType type)
+	{
+		return true;
 	}
 
 	/// <summary>
@@ -106,7 +127,7 @@ public partial class Player : CharacterBody2D
 	
 	public override void _Ready()
 	{
-		_gameState = GetNode<HuntersHaul.Scripts.GameState>("/root/GameState");
+		_gameState = GetNode<GameState>("/root/GameState");
 		
 		GD.Print($"{Multiplayer.GetUniqueId()}: Spawning player {Name}");
 		if (StringExtensions.IsValidInt(Name))
