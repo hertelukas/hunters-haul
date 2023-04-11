@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Godot;
+using Godot.Collections;
 
 namespace HuntersHaul.Scripts;
 
@@ -8,17 +8,19 @@ public partial class Player : CharacterBody2D
 	private const float Speed = 300.0f;
 	private const float HunterBoost = 1.2f;
 
+	[ExportGroup("Synced Data")]
 	[Export] public Vector2 SyncedPosition;
-
+	[Export] public Array<PowerUp.PowerUpType> AvailablePowerUps = new();
+	[Export] public PowerUp.PowerUpType CurrentPowerUp;
+	
 	private PlayerControls _inputs;
 	private GameState _gameState;
 	[Export] public bool IsHunter;
-	public string PlayerName;
+	private string _playerName;
 
 	private string _currentAnim = "";
 
 	private const int MaxPowerUps = 3;
-	private List<PowerUp.PowerUpType> _availablePowerUps = new();
 
 	/// <summary>
 	/// Updating the state of a player
@@ -87,6 +89,12 @@ public partial class Player : CharacterBody2D
 			_currentAnim = newAnim;
 			GetNode<AnimationPlayer>("Anim").Play(_currentAnim);
 		}
+		
+		// Handling power-up
+		if (_inputs.UsesPower)
+		{
+			// TODO
+		}
 
 		for (var i = 0; i < GetSlideCollisionCount(); i++)
 		{
@@ -116,10 +124,9 @@ public partial class Player : CharacterBody2D
 	/// <returns>Whether the player has picked it up</returns>
 	public bool PickUpPowerUp(PowerUp.PowerUpType type)
 	{
-		if (_availablePowerUps.Count < MaxPowerUps)
+		if (AvailablePowerUps.Count < MaxPowerUps)
 		{
-			// TODO this is not yet synced
-			_availablePowerUps.Add(type);
+			AvailablePowerUps.Add(type);
 			return true;
 		}
 		return false;
