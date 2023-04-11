@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://dn1raw5tohoye"]
+[gd_scene load_steps=4 format=3 uid="uid://b88cmgpprgl5r"]
 
-[ext_resource type="Script" path="res://Scripts/PowerUp.cs" id="1_osqpy"]
+[ext_resource type="Script" path="res://Scripts/PowerUp.cs" id="1_sjlbp"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_srh2j"]
 particle_flag_disable_z = true
@@ -12,12 +12,12 @@ orbit_velocity_min = 0.0
 orbit_velocity_max = 0.0
 scale_min = 5.0
 scale_max = 5.0
-color = Color(0.803922, 0.854902, 0.992157, 1)
+color = Color(0.745098, 0.882353, 0.901961, 1)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_sr4ya"]
 
-[node name="DummyPowerUp" type="Area2D"]
-script = ExtResource("1_osqpy")
+[node name="InvisiblePowerUp" type="Area2D"]
+script = ExtResource("1_sjlbp")
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 amount = 10

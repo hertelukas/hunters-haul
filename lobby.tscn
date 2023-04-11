@@ -204,6 +204,9 @@ layout_mode = 2
 text = " > "
 
 [node name="ErrorDialog" type="AcceptDialog" parent="."]
+title = "Upsii"
+theme = ExtResource("1_ljk0n")
+ok_button_text = " OK "
 
 [connection signal="pressed" from="Connect/GridContainer/HostButton" to="." method="OnHostPressed"]
 [connection signal="pressed" from="Connect/GridContainer/JoinButton" to="." method="OnJoinPressed"]

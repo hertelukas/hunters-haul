@@ -29,6 +29,7 @@ public partial class PowerUp : Area2D
 
 	public enum PowerUpType
 	{
-		Speed
+		Speed,
+		Invisible
 	}
 }

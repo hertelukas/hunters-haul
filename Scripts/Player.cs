@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 
 namespace HuntersHaul.Scripts;
@@ -15,6 +16,9 @@ public partial class Player : CharacterBody2D
 	public string PlayerName;
 
 	private string _currentAnim = "";
+
+	private const int MaxPowerUps = 3;
+	private List<PowerUp.PowerUpType> _availablePowerUps = new();
 
 	/// <summary>
 	/// Updating the state of a player
@@ -112,7 +116,13 @@ public partial class Player : CharacterBody2D
 	/// <returns>Whether the player has picked it up</returns>
 	public bool PickUpPowerUp(PowerUp.PowerUpType type)
 	{
-		return true;
+		if (_availablePowerUps.Count < MaxPowerUps)
+		{
+			// TODO this is not yet synced
+			_availablePowerUps.Add(type);
+			return true;
+		}
+		return false;
 	}
 
 	/// <summary>

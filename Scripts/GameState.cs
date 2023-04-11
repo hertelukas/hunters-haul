@@ -16,6 +16,7 @@ public partial class GameState : Node
     public bool IsOver { get; private set; }
     private double _lastSpawn;
     private double _syncedTime;
+    private Node2D _spawnedPowerUps;
 
     private ENetMultiplayerPeer _peer;
 
@@ -111,6 +112,7 @@ public partial class GameState : Node
         GetTree().Paused = false;
         _start = DateTime.Now;
         IsOver = false;
+        _spawnedPowerUps = GetTree().Root.GetNode(_worldName).GetNode<Node2D>("PowerUps");
     }
 
     public void HostGame(string newPlayerName)
@@ -144,8 +146,11 @@ public partial class GameState : Node
     public void BeginNextRound()
     {
         System.Diagnostics.Debug.Assert(Multiplayer.IsServer());
-        
-        var world = GetTree().Root.GetNode(_worldName);
+
+        foreach (var child in _spawnedPowerUps.GetChildren())
+        {
+            child.QueueFree();
+        }
         
         SetPlayerPositions();
         _start = DateTime.Now;
@@ -277,7 +282,7 @@ public partial class GameState : Node
         if (!HasNode("/root/" + _worldName))
             return;
         
-        if (!Multiplayer.IsServer())
+        if (!Multiplayer.HasMultiplayerPeer() || !Multiplayer.IsServer())
             return;
 
         Rpc("SyncGameState", Variant.From(GetTime()));
@@ -296,10 +301,9 @@ public partial class GameState : Node
             var powerUpSpawnPoints = GetTree().Root.GetNode(_worldName).GetNode<Node2D>("PowerUpSpawnPoints");
             var spawnPointsCount = powerUpSpawnPoints.GetChildCount();
             GD.Randomize();
-            var spawnedPowerUps = GetTree().Root.GetNode(_worldName).GetNode<Node2D>("PowerUps");
             var idx = Math.Abs((int)GD.Randi()) % spawnPointsCount;
             var alreadyChecked = new List<int> { idx };
-            while (spawnedPowerUps.GetChildren().Any(a => a.Name == idx.ToString()))
+            while (_spawnedPowerUps.GetChildren().Any(a => a.Name == idx.ToString()))
             {
                 if (alreadyChecked.Count == spawnPointsCount)
                 {
@@ -314,6 +318,7 @@ public partial class GameState : Node
             var data = new Godot.Collections.Array();
             data.Add(spawnPoint);
             data.Add(idx);
+            data.Add(GD.Randi()); // Sending a random seed
 
             GetNode<MultiplayerSpawner>($"/root/{_worldName}/PowerUpSpawner").Spawn(data);
     }

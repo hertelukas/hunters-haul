@@ -56,7 +56,7 @@ public partial class Lobby : Control
 
 		_errorDialog = GetNode<AcceptDialog>("ErrorDialog");
 
-		_scenes = DirContent("res://Worlds");
+		_scenes = CustomTools.DirContent("res://Worlds");
 		_currentMapLabel.Text = _scenes[0];
 	}
 
@@ -159,7 +159,6 @@ public partial class Lobby : Control
 	private void OnRightPressed()
 	{
 		_sceneIndex = ++_sceneIndex % _scenes.Count;
-		GD.Print(_sceneIndex);
 		_currentMapLabel.Text = _scenes[_sceneIndex];
 	}
 
@@ -172,35 +171,6 @@ public partial class Lobby : Control
 		}
 		GD.Print(_sceneIndex);
 		_currentMapLabel.Text = _scenes[_sceneIndex];
-	}
-
-	private List<string> DirContent(string path)
-	{
-		using var dir = DirAccess.Open(path);
-		var result = new List<string>();
-		if (dir != null)
-		{
-			dir.ListDirBegin();
-			string fileName = dir.GetNext();
-			while (fileName != "")
-			{
-				if (!dir.CurrentIsDir())
-				{
-					if (fileName.EndsWith(".tscn") || fileName.EndsWith(".tscn.remap"))
-					{
-						result.Add(fileName.Remove(fileName.IndexOf(".tscn", StringComparison.Ordinal)));
-						
-					}
-				}
-				fileName = dir.GetNext();
-			}
-		}
-		else
-		{
-			GD.Print("An error occurred when trying to access the path.");
-		}
-
-		return result;
 	}
 
 }

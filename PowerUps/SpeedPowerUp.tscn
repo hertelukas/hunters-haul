@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3 uid="uid://dn1raw5tohoye"]
+
+[ext_resource type="Script" path="res://Scripts/PowerUp.cs" id="1_yo8c4"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_srh2j"]
+particle_flag_disable_z = true
+direction = Vector3(0, 0, 0)
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_max = 40.6
+orbit_velocity_min = 0.0
+orbit_velocity_max = 0.0
+scale_min = 5.0
+scale_max = 5.0
+color = Color(0.980392, 0.823529, 0.882353, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sr4ya"]
+
+[node name="SpeedPowerUp" type="Area2D"]
+script = ExtResource("1_yo8c4")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+amount = 10
+process_material = SubResource("ParticleProcessMaterial_srh2j")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_sr4ya")
+
+[connection signal="body_entered" from="." to="." method="OnBodyEntered"]

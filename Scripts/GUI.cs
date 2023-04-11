@@ -28,6 +28,8 @@ public partial class GUI : Control
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
+		if (!Multiplayer.HasMultiplayerPeer()) return;
+		
 		var text = "";
 		if (_gameState.IsOver)
 		{
