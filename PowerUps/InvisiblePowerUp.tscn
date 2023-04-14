@@ -18,6 +18,7 @@ color = Color(0.745098, 0.882353, 0.901961, 1)
 
 [node name="InvisiblePowerUp" type="Area2D"]
 script = ExtResource("1_sjlbp")
+Type = 2
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 amount = 10

@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Godot;
 using Godot.Collections;
 
@@ -7,6 +9,8 @@ public partial class Player : CharacterBody2D
 {
 	private const float Speed = 300.0f;
 	private const float HunterBoost = 1.2f;
+	private const float SpeedBoost = 1.5f;
+	private const float PowerUpDuration = 10f;
 
 	[ExportGroup("Synced Data")]
 	[Export] public Vector2 SyncedPosition;
@@ -17,11 +21,17 @@ public partial class Player : CharacterBody2D
 	private GameState _gameState;
 	[Export] public bool IsHunter;
 	private string _playerName;
+	private Sprite2D _sprite;
+	private Label _label;
+
+	private GUI _gui;
 
 	private string _currentAnim = "";
 
 	private const int MaxPowerUps = 3;
-
+	private int _currentSelectedPowerUp;
+	private double _currentPowerUpDuration;
+	
 	/// <summary>
 	/// Updating the state of a player
 	/// </summary>
@@ -32,14 +42,25 @@ public partial class Player : CharacterBody2D
 		{
 			// Prevents moving on next round
 			_inputs.Motion = new Vector2(0, 0);
+			// Make visible
+			_sprite.Visible = true;
+			_label.Visible = true;
 			return;
 		}
+
 		
 		if ((Multiplayer.MultiplayerPeer == null || Multiplayer.GetUniqueId().ToString() == Name.ToString())
 		    && (!IsHunter || _gameState.GetTime() > 0))
 		{
 			// The client which this player represents will update the control state, and notify it to everyone
 			_inputs.Update();
+			_gui.SetPowerUps(AvailablePowerUps, _currentSelectedPowerUp, CurrentPowerUp);
+		}
+		else
+		{
+			_sprite.Visible = CurrentPowerUp != PowerUp.PowerUpType.Invisible;
+			_label.Visible = CurrentPowerUp != PowerUp.PowerUpType.Invisible;
+            		
 		}
 
 		if (Multiplayer.MultiplayerPeer == null || IsMultiplayerAuthority())
@@ -63,7 +84,40 @@ public partial class Player : CharacterBody2D
 		{
 			Velocity *= HunterBoost;
 		}
+		if (CurrentPowerUp == PowerUp.PowerUpType.Speed)
+		{
+			Velocity *= SpeedBoost;
+		}
 		MoveAndSlide();
+		
+		// If necessary, change selected power up
+		if (_inputs.LastPressedNumber <= AvailablePowerUps.Count)
+		{
+			_currentSelectedPowerUp = Math.Max(0, _inputs.LastPressedNumber - 1);
+			_inputs.LastPressedNumber = _currentSelectedPowerUp + 1;
+		}
+		
+		if (_inputs.UsesPower && CurrentPowerUp == PowerUp.PowerUpType.Nothing)
+		{
+			if (_currentSelectedPowerUp < AvailablePowerUps.Count)
+			{
+				CurrentPowerUp = AvailablePowerUps[_currentSelectedPowerUp];
+				AvailablePowerUps.RemoveAt(_currentSelectedPowerUp);
+				_currentSelectedPowerUp = Math.Clamp(_currentSelectedPowerUp, 0, AvailablePowerUps.Count);
+				_currentPowerUpDuration = 0;
+			}
+		}
+		
+		// Disable power up, if timer too high
+		if (CurrentPowerUp != PowerUp.PowerUpType.Nothing)
+		{
+			_currentPowerUpDuration += delta;
+			if (_currentPowerUpDuration > PowerUpDuration)
+        	{
+        		CurrentPowerUp = PowerUp.PowerUpType.Nothing;
+        	}
+		}
+		
 		
 		// Update animation based on last known player input state
 		var newAnim = "standing";
@@ -89,13 +143,8 @@ public partial class Player : CharacterBody2D
 			_currentAnim = newAnim;
 			GetNode<AnimationPlayer>("Anim").Play(_currentAnim);
 		}
-		
-		// Handling power-up
-		if (_inputs.UsesPower)
-		{
-			// TODO
-		}
 
+		
 		for (var i = 0; i < GetSlideCollisionCount(); i++)
 		{
 			var collision = GetSlideCollision(i);
@@ -108,10 +157,6 @@ public partial class Player : CharacterBody2D
 						_gameState.StopHunt();
 					}
 					break;
-				case PowerUp:
-					GD.Print($"Collided with ${((PowerUp)collision.GetCollider()).Type}");
-					break;
-				
 			}
 		}
 	}
@@ -138,8 +183,7 @@ public partial class Player : CharacterBody2D
 	/// <param name="name">Name of this player</param>
 	public void SetPlayerName(string name)
 	{
-		var label = GetNode<Label>("Label");
-		label.Text = IsHunter ? $"{name} (Hunter)" : name;
+		_label.Text = IsHunter ? $"{name} (Hunter)" : name;
 	}
 	
 	public override void _Ready()
@@ -158,6 +202,10 @@ public partial class Player : CharacterBody2D
 		if (Multiplayer.GetUniqueId().ToString() == Name.ToString())
 		{
 			camera.MakeCurrent();
+			_gui = GetNode<GUI>($"/root/{_gameState.WorldName}/CanvasLayer/GUI");
 		}
+
+		_label = GetNode<Label>("Label");
+		_sprite = GetNode<Sprite2D>("Sprite2D");
 	}
 }

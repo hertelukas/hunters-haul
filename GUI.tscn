@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://Scripts/GUI.cs" id="1_p1750"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_56neq"]
-properties/0/path = NodePath("GridContainer/Time:text")
+properties/0/path = NodePath("HBoxContainer/Center/Time:text")
 properties/0/spawn = true
 properties/0/sync = true
 
@@ -23,17 +23,28 @@ script = ExtResource("1_p1750")
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_56neq")
 
-[node name="GridContainer" type="GridContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -109.5
-offset_right = 109.5
-offset_bottom = 42.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
 
-[node name="Time" type="Label" parent="GridContainer"]
+[node name="Left" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Filler" type="Control" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Center" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Time" type="Label" parent="HBoxContainer/Center"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme = SubResource("Theme_raj5u")
@@ -42,13 +53,21 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 text = "Remaining Time"
 
-[node name="LeaveGameButton" type="Button" parent="GridContainer"]
+[node name="LeaveGameButton" type="Button" parent="HBoxContainer/Center"]
 layout_mode = 2
 text = "Leave Game"
 
-[node name="NextRoundButton" type="Button" parent="GridContainer"]
+[node name="NextRoundButton" type="Button" parent="HBoxContainer/Center"]
 layout_mode = 2
 text = "Next Round"
 
-[connection signal="pressed" from="GridContainer/LeaveGameButton" to="." method="OnExitGamePressed"]
-[connection signal="pressed" from="GridContainer/NextRoundButton" to="." method="OnNextRoundPressed"]
+[node name="Filler2" type="Control" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Right" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[connection signal="pressed" from="HBoxContainer/Center/LeaveGameButton" to="." method="OnExitGamePressed"]
+[connection signal="pressed" from="HBoxContainer/Center/NextRoundButton" to="." method="OnNextRoundPressed"]

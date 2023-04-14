@@ -26,7 +26,8 @@ public partial class PlayerControls : Node
 		}
 	}
 
-	public bool UsesPower;
+	[Export] public bool UsesPower;
+	[Export] public int LastPressedNumber;
 
 	public override void _Ready()
 	{
@@ -46,7 +47,28 @@ public partial class PlayerControls : Node
 		if (Input.IsActionPressed("move_down"))
 			m += new Vector2(0, 1);
 		UsesPower = Input.IsActionPressed("use_power");
-			
+		
+		// Register number inputs
+		if (Input.IsKeyPressed(Key.Key1))
+			LastPressedNumber = 1;
+		else if (Input.IsKeyPressed(Key.Key2))
+			LastPressedNumber = 2;
+		else if (Input.IsKeyPressed(Key.Key3))
+			LastPressedNumber = 3;
+		else if (Input.IsKeyPressed(Key.Key4))
+			LastPressedNumber = 4;
+		else if (Input.IsKeyPressed(Key.Key5))
+			LastPressedNumber = 5;
+		else if (Input.IsKeyPressed(Key.Key6))
+			LastPressedNumber = 6;
+		else if (Input.IsKeyPressed(Key.Key7))
+			LastPressedNumber = 7;
+		else if (Input.IsKeyPressed(Key.Key8))
+			LastPressedNumber = 8;
+		else if (Input.IsKeyPressed(Key.Key9))
+			LastPressedNumber = 9;
+		
+
 
 		Motion = m;
 	}

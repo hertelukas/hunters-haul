@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using Godot.Collections;
 
 namespace HuntersHaul.Scripts;
 
@@ -21,11 +22,11 @@ public partial class GameState : Node
     private ENetMultiplayerPeer _peer;
 
     // Dictionary with player ids, and names
-    private readonly Dictionary<long, string> _players = new();
-    private readonly Dictionary<long, TimeSpan> _durations = new();
+    private readonly System.Collections.Generic.Dictionary<long, string> _players = new();
+    private readonly System.Collections.Generic.Dictionary<long, TimeSpan> _durations = new();
     private long _curHunterId = 0;
 
-    private string _worldName;
+    public string WorldName { get; private set; }
 
     [Signal]
     public delegate void PlayerListChangedEventHandler();
@@ -101,8 +102,8 @@ public partial class GameState : Node
     [Rpc(CallLocal = true)]
     void LoadWorld(Variant worldName)
     {
-        _worldName = worldName.As<string>();
-        var world = (PackedScene)GD.Load("res://Worlds/" + _worldName + ".tscn");
+        WorldName = worldName.As<string>();
+        var world = (PackedScene)GD.Load("res://Worlds/" + WorldName + ".tscn");
         GetTree().Root.AddChild(world.Instantiate());
         // TODO check that top node has _worldName
         
@@ -112,7 +113,7 @@ public partial class GameState : Node
         GetTree().Paused = false;
         _start = DateTime.Now;
         IsOver = false;
-        _spawnedPowerUps = GetTree().Root.GetNode(_worldName).GetNode<Node2D>("PowerUps");
+        _spawnedPowerUps = GetTree().Root.GetNode(WorldName).GetNode<Node2D>("PowerUps");
     }
 
     public void HostGame(string newPlayerName)
@@ -160,7 +161,7 @@ public partial class GameState : Node
 
     private void SpawnPlayers()
     {
-        var world = GetTree().Root.GetNode(_worldName);
+        var world = GetTree().Root.GetNode(WorldName);
         var playerScene = (PackedScene)GD.Load("res://Player.tscn");
         var playerParent = world.GetNode<Node2D>("Players");
         
@@ -179,7 +180,7 @@ public partial class GameState : Node
 
     private void SetPlayerPositions()
     {
-        var world = GetTree().Root.GetNode(_worldName);
+        var world = GetTree().Root.GetNode(WorldName);
         
         var playerParent = world.GetNode<Node2D>("Players");
         // Peer id and spawn points
@@ -211,6 +212,8 @@ public partial class GameState : Node
             players[i].SyncedPosition = spawnPosition;
             players[i].Position = spawnPosition;
             players[i].IsHunter = hunterIndex-- == 0;
+            players[i].CurrentPowerUp = PowerUp.PowerUpType.Nothing;
+            players[i].AvailablePowerUps = new Array<PowerUp.PowerUpType>();
             players[i].SetPlayerName(pointNumber == Multiplayer.GetUniqueId() ? PlayerName : _players[pointNumber]);
             i++;
         }
@@ -219,9 +222,9 @@ public partial class GameState : Node
     public void EndGame()
     {
         // Game is running
-        if (HasNode("/root/" + _worldName))
+        if (HasNode("/root/" + WorldName))
         {
-            GetNode("/root/" + _worldName).QueueFree();
+            GetNode("/root/" + WorldName).QueueFree();
         }
 
         EmitSignal(SignalName.GameEnded);
@@ -242,7 +245,7 @@ public partial class GameState : Node
         return id == 1 ? PlayerName : _players[id];
     }
 
-    public Dictionary<long, TimeSpan> GetDurations()
+    public System.Collections.Generic.Dictionary<long, TimeSpan> GetDurations()
     {
         return _durations;
     }
@@ -279,7 +282,7 @@ public partial class GameState : Node
     public override void _Process(double delta)
     {
         // Game not running
-        if (!HasNode("/root/" + _worldName))
+        if (!HasNode("/root/" + WorldName))
             return;
         
         if (!Multiplayer.HasMultiplayerPeer() || !Multiplayer.IsServer())
@@ -298,7 +301,7 @@ public partial class GameState : Node
     private void SpawnPowerUps()
     {
             _lastSpawn = 0;
-            var powerUpSpawnPoints = GetTree().Root.GetNode(_worldName).GetNode<Node2D>("PowerUpSpawnPoints");
+            var powerUpSpawnPoints = GetTree().Root.GetNode(WorldName).GetNode<Node2D>("PowerUpSpawnPoints");
             var spawnPointsCount = powerUpSpawnPoints.GetChildCount();
             GD.Randomize();
             var idx = Math.Abs((int)GD.Randi()) % spawnPointsCount;
@@ -320,7 +323,7 @@ public partial class GameState : Node
             data.Add(idx);
             data.Add(GD.Randi()); // Sending a random seed
 
-            GetNode<MultiplayerSpawner>($"/root/{_worldName}/PowerUpSpawner").Spawn(data);
+            GetNode<MultiplayerSpawner>($"/root/{WorldName}/PowerUpSpawner").Spawn(data);
     }
 
     [Rpc]

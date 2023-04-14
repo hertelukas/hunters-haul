@@ -18,6 +18,7 @@ color = Color(0.980392, 0.823529, 0.882353, 1)
 
 [node name="SpeedPowerUp" type="Area2D"]
 script = ExtResource("1_yo8c4")
+Type = 1
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 amount = 10
