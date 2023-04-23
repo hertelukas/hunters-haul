@@ -211,9 +211,7 @@ public partial class GameState : Node
             var spawnPosition = world.GetNode<Marker2D>("SpawnPoints/" + multiplayerIdSpawnIndexDict[pointNumber]).Position;
             players[i].SyncedPosition = spawnPosition;
             players[i].Position = spawnPosition;
-            players[i].IsHunter = hunterIndex-- == 0;
-            players[i].CurrentPowerUp = PowerUp.PowerUpType.Nothing;
-            players[i].AvailablePowerUps = new Array<PowerUp.PowerUpType>();
+            players[i].SetHunter(hunterIndex-- == 0);
             players[i].SetPlayerName(pointNumber == Multiplayer.GetUniqueId() ? PlayerName : _players[pointNumber]);
             i++;
         }
@@ -305,7 +303,7 @@ public partial class GameState : Node
             var spawnPointsCount = powerUpSpawnPoints.GetChildCount();
             GD.Randomize();
             var idx = Math.Abs((int)GD.Randi()) % spawnPointsCount;
-            var alreadyChecked = new List<int> { idx };
+            var alreadyChecked = new HashSet<int>{ idx };
             while (_spawnedPowerUps.GetChildren().Any(a => a.Name == idx.ToString()))
             {
                 if (alreadyChecked.Count == spawnPointsCount)

@@ -14,12 +14,12 @@ public partial class Player : CharacterBody2D
 
 	[ExportGroup("Synced Data")]
 	[Export] public Vector2 SyncedPosition;
-	[Export] public Array<PowerUp.PowerUpType> AvailablePowerUps = new();
-	[Export] public PowerUp.PowerUpType CurrentPowerUp;
+	private Array<PowerUp.PowerUpType> _availablePowerUps = new();
+	private PowerUp.PowerUpType _currentPowerUp;
 	
 	private PlayerControls _inputs;
 	private GameState _gameState;
-	[Export] public bool IsHunter;
+	private bool _isHunter;
 	private string _playerName;
 	private Sprite2D _sprite;
 	private Label _label;
@@ -45,28 +45,58 @@ public partial class Player : CharacterBody2D
 			// Make visible
 			_sprite.Visible = true;
 			_label.Visible = true;
+			// Reset PowerUps
+			_currentPowerUp = PowerUp.PowerUpType.Nothing;
+			_availablePowerUps = new Array<PowerUp.PowerUpType>();
 			return;
 		}
 
 		
 		if ((Multiplayer.MultiplayerPeer == null || Multiplayer.GetUniqueId().ToString() == Name.ToString())
-		    && (!IsHunter || _gameState.GetTime() > 0))
+		    && (!_isHunter || _gameState.GetTime() > 0))
 		{
 			// The client which this player represents will update the control state, and notify it to everyone
 			_inputs.Update();
-			_gui.SetPowerUps(AvailablePowerUps, _currentSelectedPowerUp, CurrentPowerUp);
+			_gui.SetPowerUps(_availablePowerUps, _currentSelectedPowerUp, _currentPowerUp);
 		}
 		else
 		{
-			_sprite.Visible = CurrentPowerUp != PowerUp.PowerUpType.Invisible;
-			_label.Visible = CurrentPowerUp != PowerUp.PowerUpType.Invisible;
-            		
+			_sprite.Visible = _currentPowerUp != PowerUp.PowerUpType.Invisible;
+			_label.Visible = _currentPowerUp != PowerUp.PowerUpType.Invisible;
 		}
 
 		if (Multiplayer.MultiplayerPeer == null || IsMultiplayerAuthority())
 		{
 			// Server updates the position that will be notified to the clients
 			SyncedPosition = Position;
+			
+			// Handle power-up selection
+			if (_inputs.UsesPower && _currentPowerUp == PowerUp.PowerUpType.Nothing)
+			{
+				if (_currentSelectedPowerUp < _availablePowerUps.Count)
+				{
+					_currentPowerUp = _availablePowerUps[_currentSelectedPowerUp];
+					Rpc("SetCurrentPowerUp", Variant.From(_currentPowerUp));
+					_availablePowerUps.RemoveAt(_currentSelectedPowerUp);
+					_currentSelectedPowerUp = Math.Clamp(
+						_currentSelectedPowerUp, 
+						0, 
+						Math.Max(0, _availablePowerUps.Count - 1));
+					Rpc("SetAvailablePowerUps", Variant.From(_availablePowerUps));
+					_currentPowerUpDuration = 0;
+				}
+			}
+		
+			// Disable power up, if timer too high
+			if (_currentPowerUp != PowerUp.PowerUpType.Nothing)
+			{
+				_currentPowerUpDuration += delta;
+				if (_currentPowerUpDuration > PowerUpDuration)
+				{
+					_currentPowerUp = PowerUp.PowerUpType.Nothing;
+				    Rpc("SetCurrentPowerUp", Variant.From(PowerUp.PowerUpType.Nothing));
+				}
+			}
 		}
 		else if (Multiplayer.GetUniqueId().ToString() != Name.ToString())
 		{
@@ -80,42 +110,21 @@ public partial class Player : CharacterBody2D
 		}
 		
 		Velocity = _inputs.Motion * Speed;
-		if (IsHunter)
+		if (_isHunter)
 		{
 			Velocity *= HunterBoost;
 		}
-		if (CurrentPowerUp == PowerUp.PowerUpType.Speed)
+		if (_currentPowerUp == PowerUp.PowerUpType.Speed)
 		{
 			Velocity *= SpeedBoost;
 		}
 		MoveAndSlide();
 		
 		// If necessary, change selected power up
-		if (_inputs.LastPressedNumber <= AvailablePowerUps.Count)
+		if (_inputs.LastPressedNumber <= _availablePowerUps.Count)
 		{
 			_currentSelectedPowerUp = Math.Max(0, _inputs.LastPressedNumber - 1);
 			_inputs.LastPressedNumber = _currentSelectedPowerUp + 1;
-		}
-		
-		if (_inputs.UsesPower && CurrentPowerUp == PowerUp.PowerUpType.Nothing)
-		{
-			if (_currentSelectedPowerUp < AvailablePowerUps.Count)
-			{
-				CurrentPowerUp = AvailablePowerUps[_currentSelectedPowerUp];
-				AvailablePowerUps.RemoveAt(_currentSelectedPowerUp);
-				_currentSelectedPowerUp = Math.Clamp(_currentSelectedPowerUp, 0, AvailablePowerUps.Count);
-				_currentPowerUpDuration = 0;
-			}
-		}
-		
-		// Disable power up, if timer too high
-		if (CurrentPowerUp != PowerUp.PowerUpType.Nothing)
-		{
-			_currentPowerUpDuration += delta;
-			if (_currentPowerUpDuration > PowerUpDuration)
-        	{
-        		CurrentPowerUp = PowerUp.PowerUpType.Nothing;
-        	}
 		}
 		
 		
@@ -152,7 +161,7 @@ public partial class Player : CharacterBody2D
 			switch (collision.GetCollider())
 			{
 				case Player:
-					if (IsHunter)
+					if (_isHunter)
 					{
 						_gameState.StopHunt();
 					}
@@ -169,11 +178,15 @@ public partial class Player : CharacterBody2D
 	/// <returns>Whether the player has picked it up</returns>
 	public bool PickUpPowerUp(PowerUp.PowerUpType type)
 	{
-		if (AvailablePowerUps.Count < MaxPowerUps)
+		// Only the server can choose whether the powerUp can be picked up
+		if ((Multiplayer.MultiplayerPeer == null || IsMultiplayerAuthority())
+		    && _availablePowerUps.Count < MaxPowerUps)
 		{
-			AvailablePowerUps.Add(type);
+			_availablePowerUps.Add(type);
+			Rpc("SetAvailablePowerUps", Variant.From(_availablePowerUps));
 			return true;
 		}
+
 		return false;
 	}
 
@@ -183,7 +196,14 @@ public partial class Player : CharacterBody2D
 	/// <param name="name">Name of this player</param>
 	public void SetPlayerName(string name)
 	{
-		_label.Text = IsHunter ? $"{name} (Hunter)" : name;
+		// This should only be called by the server
+		Rpc("SetPlayerNameRpc", Variant.From(_isHunter ? $"{name} (Hunter)" : name));
+	}
+
+	public void SetHunter(bool isHunter)
+	{
+		// This should only be called by the server
+		Rpc("SetHunterRpc", Variant.From(isHunter));
 	}
 	
 	public override void _Ready()
@@ -207,5 +227,33 @@ public partial class Player : CharacterBody2D
 
 		_label = GetNode<Label>("Label");
 		_sprite = GetNode<Sprite2D>("Sprite2D");
+	}
+	
+	[Rpc]
+	private void SetCurrentPowerUp(Variant powerUpType)
+	{
+		_currentPowerUp = powerUpType.As<PowerUp.PowerUpType>();
+	}
+
+	[Rpc(CallLocal = true)]
+	private void SetPlayerNameRpc(Variant name)
+	{
+		_label.Text = name.As<string>();
+	}
+
+	[Rpc(CallLocal = true)]
+	private void SetHunterRpc(Variant isHunter)
+	{
+		_isHunter = isHunter.AsBool();
+	}
+
+	[Rpc]
+	private void SetAvailablePowerUps(Variant powerUps)
+	{
+		_availablePowerUps = powerUps.As<Array<PowerUp.PowerUpType>>(); 
+		_currentSelectedPowerUp = Math.Clamp(
+			_currentSelectedPowerUp, 
+			0, 
+			Math.Max(0, _availablePowerUps.Count - 1));
 	}
 }
