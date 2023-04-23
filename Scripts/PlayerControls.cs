@@ -26,8 +26,8 @@ public partial class PlayerControls : Node
 		}
 	}
 
-	[Export] public bool UsesPower;
-	[Export] public int LastPressedNumber;
+	public bool UsesPower;
+	public int LastPressedNumber;
 
 	public override void _Ready()
 	{
@@ -46,30 +46,49 @@ public partial class PlayerControls : Node
 			m += new Vector2(0, -1);
 		if (Input.IsActionPressed("move_down"))
 			m += new Vector2(0, 1);
-		UsesPower = Input.IsActionPressed("use_power");
-		
+		if (Input.IsActionPressed("use_power") != UsesPower)
+		{
+			Rpc("SetUsesPower", Variant.From(!UsesPower));
+		}
+
+		var lastPressedNumber = -1;
 		// Register number inputs
 		if (Input.IsKeyPressed(Key.Key1))
-			LastPressedNumber = 1;
+			lastPressedNumber = 1;
 		else if (Input.IsKeyPressed(Key.Key2))
-			LastPressedNumber = 2;
+			lastPressedNumber = 2;
 		else if (Input.IsKeyPressed(Key.Key3))
-			LastPressedNumber = 3;
+			lastPressedNumber = 3;
 		else if (Input.IsKeyPressed(Key.Key4))
-			LastPressedNumber = 4;
+			lastPressedNumber = 4;
 		else if (Input.IsKeyPressed(Key.Key5))
-			LastPressedNumber = 5;
+			lastPressedNumber = 5;
 		else if (Input.IsKeyPressed(Key.Key6))
-			LastPressedNumber = 6;
+			lastPressedNumber = 6;
 		else if (Input.IsKeyPressed(Key.Key7))
-			LastPressedNumber = 7;
+			lastPressedNumber = 7;
 		else if (Input.IsKeyPressed(Key.Key8))
-			LastPressedNumber = 8;
+			lastPressedNumber = 8;
 		else if (Input.IsKeyPressed(Key.Key9))
-			LastPressedNumber = 9;
-		
+			lastPressedNumber = 9;
 
+		if (lastPressedNumber != -1 && lastPressedNumber != LastPressedNumber)
+		{
+			Rpc("SetLastPressedNumber", Variant.From(lastPressedNumber));
+		}
 
 		Motion = m;
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+	private void SetUsesPower(Variant usesPower)
+	{
+		UsesPower = usesPower.AsBool();
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+	private void SetLastPressedNumber(Variant number)
+	{
+		LastPressedNumber = number.As<int>();
 	}
 }
